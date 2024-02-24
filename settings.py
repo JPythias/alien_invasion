@@ -17,3 +17,10 @@ class Settings:
         # fleet_direction为1表示向右移，-1表示向左移
         self.fleet_direction = 1
         self.ship_limit = 3
+        # 加快游戏节奏的速度
+        self.speedup_scale = 1.1
+        self.initialize_dynamic_settings()
+
+    def initialize_dynamic_settings(self):
+        """初始化随游戏进行而变化的设置"""
+
