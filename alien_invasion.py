@@ -68,7 +68,10 @@ class AlienInvasion:
             # 重置游戏统计信息
             self.stats.reset_stats()
             self.stats.game_active = True
+            # 当前分数和当前等级需要重置，最高分不需要重置
             self.sb.prep_score()
+            self.sb.prep_level()
+            self.sb.prep_ships()
             # 清空剩下的外星人和子弹
             self.aliens.empty()
             self.bullets.empty()
@@ -132,6 +135,9 @@ class AlienInvasion:
             self.bullets.empty()
             self._create_fleet()
             self.settings.increase_speed()
+            # 提高等级
+            self.stats.level += 1
+            self.sb.prep_level()
 
     def _fire_bullet(self):
         """创建一颗子弹，并将其加入编组bullets中"""
@@ -190,7 +196,7 @@ class AlienInvasion:
         if self.stats.ship_left > 0:
             # 判断是否还有飞船剩余
             self.stats.ship_left -= 1
-
+            self.sb.prep_ships()
             # 清空剩下的外星人和子弹
             self.aliens.empty()
             self.bullets.empty()

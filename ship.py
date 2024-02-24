@@ -1,13 +1,14 @@
 # JawnPythias
 # date:23/02/2024
 import pygame
+from pygame._sprite import Sprite
 
-
-class Ship:
+class Ship(Sprite):
     """管理飞船的类"""
 
     def __init__(self, ai_game):
         """初始化飞船并设置其初始位置"""
+        super().__init__()
         self.screen = ai_game.screen
         self.screen_rect = ai_game.screen.get_rect()
         self.settings = ai_game.settings

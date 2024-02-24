@@ -2,13 +2,15 @@
 # date:24/02/2024
 
 import pygame.font
-
+from pygame._sprite import Sprite, Group
+from ship import Ship
 
 class Scoreboard:
     """显示得分信息的类"""
 
     def __init__(self, ai_game):
         """初始化得分信息的属性"""
+        self.ai_game = ai_game
         self.screen = ai_game.screen
         self.screen_rect = ai_game.screen.get_rect()
         self.settings = ai_game.settings
@@ -19,6 +21,8 @@ class Scoreboard:
         # 准备初始得分图像
         self.prep_score()
         self.prep_high_score()
+        self.prep_level()
+        self.prep_ships()
 
     def prep_score(self):
         """将得分转换为一幅渲染的图像"""
@@ -37,15 +41,37 @@ class Scoreboard:
         high_score_str = "{:,}".format(rounded_score)  # 添加千位分隔符
         self.high_score_image = self.font.render(high_score_str, True,
                                             self.text_color, self.settings.bg_color)
-        # 在屏幕右上角显示得分
+        # 将等级放在分数的下方
         self.high_score_rect = self.high_score_image.get_rect()
         self.high_score_rect.centerx = self.screen_rect.centerx
         self.high_score_rect.top = self.score_rect.top
 
+    def prep_level(self):
+        """将等级转换为一幅渲染的图像"""
+        level_str = str(self.stats.level)
+        self.level_image = self.font.render(level_str, True,
+                                            self.text_color, self.settings.bg_color)
+        # 在屏幕右上角显示得分
+        self.level_rect = self.level_image.get_rect()
+        self.level_rect.right = self.screen_rect.right
+        self.level_rect.top = self.screen_rect.bottom + 10
+
+    def prep_ships(self):
+        """显示还余下多少艘飞船"""
+        self.ships = Group()
+        for ship_number in range(self.stats.ship_left):
+            ship = Ship(self.ai_game)
+            ship.rect.x = 10 + ship_number * ship.rect.width
+            ship.rect.y = 10
+            self.ships.add(ship)
+
     def show_score(self):
         """在屏幕上显示得分"""
         self.screen.blit(self.score_image, self.score_rect)
-        self.screen.blit(self.score_image, self.high_score_rect)
+        self.screen.blit(self.high_score_image, self.high_score_rect)
+        self.screen.blit(self.level_image, self.level_rect)
+        # Sprite中继承的绘制方法
+        self.ships.draw(self.screen)
 
     def check_high_score(self):
         """检查是否产生了新的最高分"""
