@@ -10,6 +10,7 @@ from bullet import Bullet
 from alien import Alien
 from game_stat import GameStats
 from button import Button
+from scoreboard import Scoreboard
 
 class AlienInvasion:
     """管理游戏资源和行为的类"""
@@ -24,6 +25,7 @@ class AlienInvasion:
         self.bg_color = (self.settings.bg_color)
         # 创建一个用于存储游戏统计信息的实例
         self.stats = GameStats(self)
+        self.sb = Scoreboard(self)
         self.ship = Ship(self)
         self.bullets = pygame.sprite.Group()
         self.aliens = pygame.sprite.Group()
@@ -61,9 +63,12 @@ class AlienInvasion:
         button_clicked = self.play_button.rect.collidepoint(mouse_pos)
         # 只有在not active时才进行重置，防止出现没有button出现时点击button位置重刷游戏设置
         if button_clicked and not self.stats.game_active:
+            # 重置游戏速度
+            self.settings.initialize_dynamic_settings()
             # 重置游戏统计信息
             self.stats.reset_stats()
             self.stats.game_active = True
+            self.sb.prep_score()
             # 清空剩下的外星人和子弹
             self.aliens.empty()
             self.bullets.empty()
@@ -98,6 +103,8 @@ class AlienInvasion:
         for bullet in self.bullets.sprites():
             bullet.draw_bullet()
         self.aliens.draw(self.screen)# 这里的draw方法来自于sprite中
+        # 显示得分
+        self.sb.show_score()
         # 如果游戏处于非活动状态，就绘制Play按钮
         if not self.stats.game_active:
             self.play_button.draw_button()
@@ -114,10 +121,17 @@ class AlienInvasion:
     def _check_bullet_alien_collisions(self):
         collisions = pygame.sprite.groupcollide(
             self.bullets, self.aliens, True, True)
+        if collisions:
+            for aliens in collisions.values():
+                # 如果一颗子弹射中多个外星人
+                self.stats.score += self.settings.alien_points * len(aliens)
+            self.sb.prep_score()# 更新得分信息
+            self.sb.check_high_score()
         if not self.aliens:
             # 删除现有的子弹并新建一群外星人
             self.bullets.empty()
             self._create_fleet()
+            self.settings.increase_speed()
 
     def _fire_bullet(self):
         """创建一颗子弹，并将其加入编组bullets中"""
@@ -155,7 +169,7 @@ class AlienInvasion:
         self.aliens.update()
         if pygame.sprite.spritecollideany(self.ship, self.aliens):
             self._ship_hit()
-            self._check_aliens_bottom()
+        self._check_aliens_bottom()
 
     def _check_fleet_edges(self):
         """有外星人到达边缘时采取相应的措施"""
@@ -190,7 +204,7 @@ class AlienInvasion:
         else:
             self.stats.game_active = False
             # 重新设置光标可见
-            pygame.mouse.set_visible(False)
+            pygame.mouse.set_visible(True)
 
     def _check_aliens_bottom(self):
         """检查是否有外星人到达了屏幕底端"""
